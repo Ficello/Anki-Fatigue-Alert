@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "window_size": 5,
+  "baseline_cards": 10,
+  "time_ratio_threshold": 1.8,
+  "error_rate_threshold": 0.6,
+  "cooldown_minutes": 15,
+  "cooldown_cards": 20,
+  "min_cards_before_alert": 19,
+  "use_revlog_baseline": true,
+  "revlog_baseline_days": 30,
+  "pause_tolerance_minutes": 2
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Alerte Fatigue EDN",
+  "package": "Anki_EDN_Fatigue_Alert",
+  "author": "Anki EDN",
+  "version": "1.0.0",
+  "description": "Détecte la fatigue en session de révision (temps de réponse, taux d'erreur) et invite l'utilisateur à faire une pause.",
+  "homepage": "",
+  "min_point_version": 231000
+}
