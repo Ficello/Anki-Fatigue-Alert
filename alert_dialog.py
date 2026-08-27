@@ -49,7 +49,7 @@ class FatigueAlertDialog(QDialog):
     def _setup_ui(self):
         self.setWindowTitle(tr("alert_window_title"))
         self.setModal(False)
-        self.setFixedWidth(460)
+        self.setFixedWidth(490)
         self.setWindowFlags(
             Qt.WindowType.Tool
             | Qt.WindowType.WindowTitleHint
@@ -85,9 +85,20 @@ class FatigueAlertDialog(QDialog):
         grid = QHBoxLayout()
         grid.setSpacing(8)
 
-        time_val_color = "#f87171" if self._dark else "#b84444"
+        time_triggered = self.stats.get("time_fatigue", False)
+        error_triggered = self.stats.get("error_fatigue", False)
+
+        if time_triggered:
+            time_val_color = "#f87171" if self._dark else "#dc2626"
+        else:
+            time_val_color = "#4ade80" if self._dark else "#16a34a"
+
         base_val_color = "#60a5fa" if self._dark else "#2563eb"
-        err_val_color  = "#fbbf24" if self._dark else "#d97706"
+
+        if error_triggered:
+            err_val_color = "#f87171" if self._dark else "#dc2626"
+        else:
+            err_val_color = "#4ade80" if self._dark else "#16a34a"
 
         grid.addWidget(self._stat_card(
             tr("alert_stat_recent_time"),
@@ -224,8 +235,8 @@ class FatigueAlertDialog(QDialog):
                 }
                 QPushButton {
                     border-radius: 6px;
-                    padding: 8px 12px;
-                    font-size: 12px;
+                    padding: 8px 8px;
+                    font-size: 11px;
                     font-weight: bold;
                     border: 1px solid #45475a;
                     background: #313244;
@@ -313,8 +324,8 @@ class FatigueAlertDialog(QDialog):
                 }
                 QPushButton {
                     border-radius: 6px;
-                    padding: 8px 12px;
-                    font-size: 12px;
+                    padding: 8px 8px;
+                    font-size: 11px;
                     font-weight: bold;
                     border: 1px solid #cbd5e1;
                     background: #ffffff;

@@ -31,6 +31,21 @@ MIN_DECK_REVIEWS    = 20    # below → pure global baseline
 MATURE_DECK_REVIEWS = 100   # above → pure deck-specific baseline
 
 
+def is_card_mature(card) -> bool:
+    """
+    Check if a card is mature (interval >= 21 days).
+    Uses lastIvl (interval before answer) or ivl (new interval) to be resilient across scheduler versions.
+    """
+    try:
+        if card is None:
+            return False
+        last_ivl = getattr(card, "lastIvl", 0) or 0
+        ivl = getattr(card, "ivl", 0) or 0
+        return last_ivl >= 21 or ivl >= 21
+    except Exception:
+        return False
+
+
 class FatigueAnalyzer:
     def __init__(self):
         self._reset_state()
@@ -39,8 +54,9 @@ class FatigueAnalyzer:
     # State
     # ------------------------------------------------------------------
     def _reset_state(self):
-        self.session_events    = []       # All (time_taken, ease) this session
-        self.window            = deque()  # Sliding window (time_taken, ease)
+        self.session_events    = []       # All (time_taken, ease, is_mature) this session
+        self.window            = deque()  # Sliding window (time_taken, ease, is_mature)
+        self.mature_window     = deque()  # Sliding window of mature cards only (time_taken, ease)
         self.baseline_mean     = None     # Float seconds, None = not ready
         self.baseline_source   = "none"   # "global" | "mixed:XX%" | "deck" | "session_only"
         self.session_deck_id   = None
@@ -49,6 +65,8 @@ class FatigueAnalyzer:
         self.last_alert_card_count = 0
         self.total_cards       = 0
         self.ignore_cooldown   = False
+        self._last_time_fatigue  = False
+        self._last_error_fatigue = False
         # Learned adjustments for current deck (loaded at session start)
         self._time_ratio_adj   = 0.0
         self._error_rate_adj   = 0.0
@@ -219,13 +237,20 @@ class FatigueAnalyzer:
                 return False
 
             self.total_cards += 1
-            self.session_events.append((time_taken_sec, ease))
+            mature = is_card_mature(card)
+            self.session_events.append((time_taken_sec, ease, mature))
 
-            # Sliding window
+            # Sliding window for pace (all recent cards)
             window_size = cfg.get("window_size", 5)
-            self.window.append((time_taken_sec, ease))
+            self.window.append((time_taken_sec, ease, mature))
             while len(self.window) > window_size:
                 self.window.popleft()
+
+            # Sliding window for error rate (mature cards only)
+            if mature:
+                self.mature_window.append((time_taken_sec, ease))
+                while len(self.mature_window) > window_size:
+                    self.mature_window.popleft()
 
             # If no revlog baseline yet, build one from session start
             baseline_cards = cfg.get("baseline_cards", 10)
@@ -238,10 +263,11 @@ class FatigueAnalyzer:
                     f"(from first {baseline_cards} cards)")
 
             log(
-                f"FatigueAnalyzer: card #{self.total_cards} | "
+                f"FatigueAnalyzer: card #{self.total_cards} | mature={mature} | "
                 f"time={time_taken_sec:.1f}s | ease={ease} | "
                 f"baseline={self.baseline_mean or 0:.1f}s | "
-                f"window={len(self.window)}/{window_size}"
+                f"window={len(self.window)}/{window_size} | "
+                f"mature_window={len(self.mature_window)}/{window_size}"
             )
 
             return self._check_fatigue(cfg)
@@ -274,11 +300,9 @@ class FatigueAnalyzer:
                 if elapsed_min < cooldown_min and cards_since < cooldown_cards:
                     return False
 
-        # Window stats
+        # Window pace stats
         w_times  = [e[0] for e in self.window]
-        w_eases  = [e[1] for e in self.window]
         w_mean   = sum(w_times) / len(w_times)
-        err_rate = w_eases.count(1) / len(w_eases)
         ratio    = w_mean / self.baseline_mean
 
         # Effective thresholds (base + learned adjustment)
@@ -289,14 +313,27 @@ class FatigueAnalyzer:
         eff_time_thr  = max(1.2, min(4.0, eff_time_thr))
         eff_error_thr = max(0.2, min(0.95, eff_error_thr))
 
+        # Time fatigue condition
+        time_fatigue  = ratio >= eff_time_thr
+
+        # Error fatigue condition: ONLY on mature cards!
+        min_mature_sample = min(3, window_size)
+        if len(self.mature_window) >= min_mature_sample:
+            mat_eases = [e[1] for e in self.mature_window]
+            mat_err_rate = mat_eases.count(1) / len(mat_eases)
+            error_fatigue = (mat_err_rate >= eff_error_thr) and (mat_eases.count(1) >= 2)
+        else:
+            mat_err_rate = 0.0
+            error_fatigue = False
+
+        self._last_time_fatigue  = time_fatigue
+        self._last_error_fatigue = error_fatigue
+
         log(
             f"FatigueAnalyzer: check | "
             f"w_mean={w_mean:.1f}s ratio={ratio:.2f} (thr={eff_time_thr:.2f}) | "
-            f"err={err_rate:.0%} (thr={eff_error_thr:.0%})"
+            f"mat_err={mat_err_rate:.0%} (thr={eff_error_thr:.0%}, mature_count={len(self.mature_window)})"
         )
-
-        time_fatigue  = ratio    >= eff_time_thr
-        error_fatigue = err_rate >= eff_error_thr
 
         if time_fatigue or error_fatigue:
             self.last_alert_time       = time.time()
@@ -338,18 +375,23 @@ class FatigueAnalyzer:
     # Stats / lifecycle
     # ------------------------------------------------------------------
     def get_stats(self) -> dict:
-        w_times = [e[0] for e in self.window] if self.window else []
-        w_eases = [e[1] for e in self.window] if self.window else []
-        all_t   = [e[0] for e in self.session_events]
+        w_times   = [e[0] for e in self.window] if self.window else []
+        all_t     = [e[0] for e in self.session_events]
+        mat_eases = [e[1] for e in self.mature_window] if self.mature_window else []
+        mat_err_rate = round(mat_eases.count(1) / len(mat_eases) * 100) if mat_eases else 0
+
         return {
             "total_cards":        self.total_cards,
             "baseline_mean_time": round(self.baseline_mean or 0, 1),
             "baseline_source":    self.baseline_source,
             "window_mean_time":   round(sum(w_times) / len(w_times), 1) if w_times else 0,
-            "window_error_rate":  round(w_eases.count(1) / len(w_eases) * 100) if w_eases else 0,
+            "window_error_rate":  mat_err_rate,
             "session_mean_time":  round(sum(all_t) / len(all_t), 1) if all_t else 0,
             "time_ratio_adj":     round(self._time_ratio_adj, 3),
             "error_rate_adj":     round(self._error_rate_adj, 3),
+            "time_fatigue":       getattr(self, "_last_time_fatigue", False),
+            "error_fatigue":      getattr(self, "_last_error_fatigue", False),
+            "mature_cards_count": len(self.mature_window),
         }
 
     def end_session(self):
