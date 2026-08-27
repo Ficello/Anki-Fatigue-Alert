@@ -11,11 +11,7 @@
 ## 📸 Overview & Screenshots
 
 <div align="center">
-  <p><b>✨ Floating Alert Popup (Night & Light Mode)</b></p>
-  <img src="docs/images/alert_dark_light.png" alt="Fatigue Alert Popup" width="750">
-  <br><br>
-  <p><b>⚙️ Customization Settings & Tools Menu</b></p>
-  <img src="docs/images/settings_preview.png" alt="Settings Dialog & Menu" width="750">
+  <img src="docs/images/alert_dark_light.png" alt="Fatigue Alert Popup" width="700">
 </div>
 
 ---
