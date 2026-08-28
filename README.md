@@ -42,7 +42,7 @@
 
 ### Via AnkiWeb (Recommended)
 1. In Anki, go to **Tools** > **Add-ons** > **Get Add-ons...**
-2. Enter the Add-on Code: `XXXXXXXX` *(to be filled once published on AnkiWeb)*
+2. Enter the Add-on Code: `1071808091`
 3. Restart Anki.
 
 ### Manual Installation (.ankiaddon / Source)
@@ -78,28 +78,6 @@ Access options directly through:
 ---
 
 ## 🌍 Internationalization (i18n)
-
-Supported languages:
-- English (`en`)
-- Français (`fr`)
-- Español (`es`)
-- Deutsch (`de`)
-- Italiano (`it`)
-- Português (`pt`)
-- Русский (`ru`)
-- 日本語 (`ja`)
-- 简体中文 (`zh_CN`)
-- 繁體中文 (`zh_TW`)
-- 한국어 (`ko`)
-- العربية (`ar`)
-- Polski (`pl`)
-- Türkçe (`tr`)
-- Nederlands (`nl`)
-- Svenska (`sv`)
-- Українська (`uk`)
-- Čeština (`cs`)
-
----
 
 ## 🛠️ Project Structure
 
