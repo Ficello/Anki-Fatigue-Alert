@@ -77,8 +77,6 @@ Access options directly through:
 
 ---
 
-## 🌍 Internationalization (i18n)
-
 ## 🛠️ Project Structure
 
 ```text
