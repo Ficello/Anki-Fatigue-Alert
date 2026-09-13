@@ -20,11 +20,11 @@ from .analyzer import get_analyzer
 from .config import get_config, set_value
 from .feedback_store import setup_db as _setup_feedback_db
 from .i18n import tr
+from .active_timer import get_active_timer
 
 # ------------------------------------------------------------------
 # Internal state
 # ------------------------------------------------------------------
-_question_shown_time = None
 
 # Pause-tolerance state
 _session_paused    = False   # True after reviewer_will_end, until next card
@@ -38,29 +38,49 @@ _act_toggle = None   # QAction — checked state updated on toggle
 # ------------------------------------------------------------------
 # Hooks
 # ------------------------------------------------------------------
-def _on_question_shown(reviewer):
-    global _question_shown_time
-    import time
-    _question_shown_time = time.time()
+def _on_question_shown(reviewer_or_card):
+    try:
+        card = None
+        if hasattr(reviewer_or_card, "card") and reviewer_or_card.card is not None:
+            card = reviewer_or_card.card
+        elif hasattr(reviewer_or_card, "id"):
+            card = reviewer_or_card
+        elif mw and hasattr(mw, "reviewer") and hasattr(mw.reviewer, "card"):
+            card = mw.reviewer.card
+
+        get_active_timer().on_card_shown(card)
+    except Exception as e:
+        log_error(f"__init__ _on_question_shown error: {e}")
 
 
 def _on_card_answered(reviewer, card, ease):
-    global _question_shown_time, _session_paused, _session_end_time
+    global _session_paused, _session_end_time
     try:
         import time
 
-        # Use Anki's built-in card timer (most accurate)
-        if hasattr(card, "time_taken"):
-            time_taken_sec = card.time_taken() / 1000.0
-        elif hasattr(card, "timeTaken"):
-            time_taken_sec = card.timeTaken() / 1000.0
-        elif _question_shown_time is not None:
-            time_taken_sec = time.time() - _question_shown_time
+        timer = get_active_timer()
+        active_time_sec, wall_time_sec = timer.on_card_answered(card)
+
+        # Fallback if active timer returned 0
+        if active_time_sec <= 0.0:
+            if hasattr(card, "time_taken"):
+                time_taken_sec = card.time_taken() / 1000.0
+            elif hasattr(card, "timeTaken"):
+                time_taken_sec = card.timeTaken() / 1000.0
+            else:
+                time_taken_sec = 0.0
         else:
-            time_taken_sec = 0.0
+            time_taken_sec = active_time_sec
 
         # Cap at 3 minutes (user walked away, etc.)
         time_taken_sec = min(time_taken_sec, 180.0)
+
+        excluded_sec = max(0.0, wall_time_sec - time_taken_sec)
+        if excluded_sec >= 1.0:
+            log(
+                f"__init__: card answered — active time: {time_taken_sec:.1f}s "
+                f"(excluded {excluded_sec:.1f}s background/edit time, wall: {wall_time_sec:.1f}s)"
+            )
 
         analyzer = get_analyzer()
 
@@ -100,8 +120,6 @@ def _on_card_answered(reviewer, card, ease):
 
     except Exception as e:
         log_error(f"__init__ _on_card_answered error: {e}")
-    finally:
-        _question_shown_time = None
 
 
 def _init_session(card):
@@ -128,6 +146,7 @@ def _on_reviewer_will_end():
     global _session_paused, _session_end_time
     import time
     try:
+        get_active_timer().on_reviewer_will_end()
         _session_paused   = True
         _session_end_time = time.time()
         log("__init__: reviewer ended — session paused (waiting for tolerance check).")
@@ -135,16 +154,31 @@ def _on_reviewer_will_end():
         log_error(f"__init__ _on_reviewer_will_end error: {e}")
 
 
+def _on_state_did_change(new_state: str, old_state: str):
+    """Stop active timer accumulation when leaving review state."""
+    if new_state != "review":
+        get_active_timer().on_reviewer_will_end()
+
+
 # ------------------------------------------------------------------
 # Alert display
 # ------------------------------------------------------------------
+_current_alert_dialog = None
+
+
 def _show_alert():
+    global _current_alert_dialog
     try:
+        if _current_alert_dialog is not None and _current_alert_dialog.isVisible():
+            log("Alert: dialog is already visible, ignoring duplicate request.")
+            return
+
         analyzer = get_analyzer()
         stats    = analyzer.get_stats()
 
         from .alert_dialog import FatigueAlertDialog
         dialog = FatigueAlertDialog(mw, stats)
+        _current_alert_dialog = dialog
 
         def _on_feedback(feedback: str):
             try:
@@ -154,11 +188,17 @@ def _show_alert():
                 elif feedback == "weak_positive":
                     log("Alert: user is fatigued but continues.")
                 elif feedback == "false_positive":
-                    log("Alert: user says algorithm was wrong — thresholds will be raised.")
+                    log("Alert: user says algorithm was wrong — thresholds raised and cooldown enforced.")
             except Exception as ex:
                 log_error(f"__init__ _on_feedback error: {ex}")
 
+        def _on_dialog_finished():
+            global _current_alert_dialog
+            _current_alert_dialog = None
+            analyzer.clear_window()
+
         dialog.feedback_given.connect(_on_feedback)
+        dialog.finished.connect(_on_dialog_finished)
 
         # Position dialog at top-right of Anki window
         if mw and mw.isVisible():
@@ -295,6 +335,7 @@ def init_addon():
     gui_hooks.reviewer_did_show_question.append(_on_question_shown)
     gui_hooks.reviewer_did_answer_card.append(_on_card_answered)
     gui_hooks.reviewer_will_end.append(_on_reviewer_will_end)
+    gui_hooks.state_did_change.append(_on_state_did_change)
 
     gui_hooks.main_window_did_init.append(_setup_tools_menu)
 

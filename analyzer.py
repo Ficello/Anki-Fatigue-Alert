@@ -351,6 +351,12 @@ class FatigueAnalyzer:
     # ------------------------------------------------------------------
     # Feedback handling
     # ------------------------------------------------------------------
+    def clear_window(self):
+        """Clear sliding windows so old alert cards do not leak into future checks."""
+        self.window.clear()
+        self.mature_window.clear()
+        log("FatigueAnalyzer: sliding windows cleared.")
+
     def handle_feedback(self, signal: str):
         """
         Process user feedback from the alert dialog.
@@ -365,9 +371,23 @@ class FatigueAnalyzer:
                 signal=signal,
                 stats=stats,
             )
-            if signal == "false_positive":
-                self.ignore_cooldown = True
-            log(f"FatigueAnalyzer: feedback recorded — '{signal}'")
+
+            # Reload updated threshold adjustments into memory immediately
+            if self.session_deck_id:
+                self._load_feedback_adjustments(self.session_deck_id)
+
+            # Strictly enforce cooldown upon feedback (never ignore cooldown on false_positive)
+            self.last_alert_time       = time.time()
+            self.last_alert_card_count = self.total_cards
+            self.ignore_cooldown       = False
+
+            # Clear sliding windows to avoid notification loops
+            self.clear_window()
+
+            log(
+                f"FatigueAnalyzer: feedback recorded — '{signal}' "
+                f"(cooldown active at card #{self.total_cards}, windows cleared)"
+            )
         except Exception as e:
             log_error(f"FatigueAnalyzer.handle_feedback error: {e}")
 
