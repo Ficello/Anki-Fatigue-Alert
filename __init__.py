@@ -21,6 +21,7 @@ from .config import get_config, set_value
 from .feedback_store import setup_db as _setup_feedback_db
 from .i18n import tr
 from .active_timer import get_active_timer
+from .speed_focus import init_speed_focus, suspend_timers
 
 # ------------------------------------------------------------------
 # Internal state
@@ -33,6 +34,7 @@ _session_end_time  = None    # Time when reviewer_will_end was called
 # Menu references (for dynamic updates)
 _fa_menu    = None   # QMenu
 _act_toggle = None   # QAction — checked state updated on toggle
+_act_sfm_toggle = None  # QAction — Speed Focus toggle
 
 
 # ------------------------------------------------------------------
@@ -147,6 +149,8 @@ def _on_reviewer_will_end():
     import time
     try:
         get_active_timer().on_reviewer_will_end()
+        if mw and hasattr(mw, "reviewer") and mw.reviewer:
+            suspend_timers(mw.reviewer)
         _session_paused   = True
         _session_end_time = time.time()
         log("__init__: reviewer ended — session paused (waiting for tolerance check).")
@@ -158,6 +162,8 @@ def _on_state_did_change(new_state: str, old_state: str):
     """Stop active timer accumulation when leaving review state."""
     if new_state != "review":
         get_active_timer().on_reviewer_will_end()
+        if mw and hasattr(mw, "reviewer") and mw.reviewer:
+            suspend_timers(mw.reviewer)
 
 
 # ------------------------------------------------------------------
@@ -287,12 +293,28 @@ def _toggle_enabled():
     log(f"Addon {'enabled' if new_state else 'disabled'} by user.")
 
 
+def _toggle_sfm_enabled():
+    """Toggle Speed Focus Mode enabled state and update visuals."""
+    global _act_sfm_toggle
+    cfg       = get_config()
+    new_state = not cfg.get("sfm_enabled", True)
+    set_value("sfm_enabled", new_state)
+
+    if _act_sfm_toggle is not None:
+        _act_sfm_toggle.setChecked(new_state)
+
+    if not new_state and mw and hasattr(mw, "reviewer") and mw.reviewer:
+        suspend_timers(mw.reviewer)
+
+    log(f"Speed Focus {'enabled' if new_state else 'disabled'} by user.")
+
+
 # ------------------------------------------------------------------
 # Menu setup (in mw.form.menuTools)
 # ------------------------------------------------------------------
 def _setup_tools_menu():
     """Inject Fatigue Alert entries into Anki's built-in Tools menu."""
-    global _fa_menu, _act_toggle
+    global _fa_menu, _act_toggle, _act_sfm_toggle
     try:
         from aqt.qt import QMenu, QAction
 
@@ -312,6 +334,12 @@ def _setup_tools_menu():
         _act_toggle.setChecked(enabled)
         _act_toggle.triggered.connect(_toggle_enabled)
         _fa_menu.addAction(_act_toggle)
+
+        _act_sfm_toggle = QAction(tr("sfm_lbl_enabled"), mw)
+        _act_sfm_toggle.setCheckable(True)
+        _act_sfm_toggle.setChecked(cfg.get("sfm_enabled", True))
+        _act_sfm_toggle.triggered.connect(_toggle_sfm_enabled)
+        _fa_menu.addAction(_act_sfm_toggle)
 
         _fa_menu.addSeparator()
 
@@ -338,6 +366,8 @@ def init_addon():
     gui_hooks.state_did_change.append(_on_state_did_change)
 
     gui_hooks.main_window_did_init.append(_setup_tools_menu)
+
+    init_speed_focus()
 
     log("Fatigue Alert addon initialized.")
 

@@ -26,7 +26,7 @@ class ActiveReviewTimer:
         self._wall_start_time: float | None = None
 
         self._ticker = QTimer()
-        self._ticker.setInterval(100)  # 100ms sample interval
+        self._ticker.setInterval(500)  # 500ms sample interval
         self._ticker.timeout.connect(self._on_tick)
 
         self._signals_connected = False
@@ -100,8 +100,8 @@ class ActiveReviewTimer:
         if self._last_sample_time is not None:
             delta = now - self._last_sample_time
             # Only accumulate delta if reviewer was in foreground during this interval.
-            # Delta guard (< 1.5s): prevents accumulating time if system slept or froze.
-            if self._was_in_foreground and 0.0 < delta < 1.5:
+            # Delta guard (< 2.5s): prevents accumulating time if system slept or froze.
+            if self._was_in_foreground and 0.0 < delta < 2.5:
                 self._accumulated_seconds += delta
 
         self._last_sample_time = now

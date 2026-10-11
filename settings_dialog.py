@@ -5,7 +5,8 @@ Provides clean configuration of detection parameters with automatic Anki theme i
 from aqt.qt import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QSpinBox, QDoubleSpinBox,
-    QCheckBox, QFrame, Qt, QFont, QScrollArea, QWidget
+    QCheckBox, QComboBox, QLineEdit, QFrame, Qt, QFont,
+    QScrollArea, QWidget
 )
 from .config import get_config, save_config, DEFAULTS
 from .logger import log
@@ -186,6 +187,100 @@ class FatigueSettingsDialog(QDialog):
 
         body_layout.addWidget(card_revlog)
 
+        # ── Group 5: Speed Focus Mode ──
+        card_sfm, form_sfm = self._create_card(
+            tr("sfm_section_title"),
+            tr("sfm_section_sub")
+        )
+
+        unit_sec = tr("unit_seconds")
+        disabled_txt = tr("unit_disabled")
+
+        self.chk_sfm_enabled = QCheckBox(tr("sfm_lbl_enabled"))
+        self.chk_sfm_enabled.setChecked(cfg.get("sfm_enabled", True))
+        self.chk_sfm_enabled.setFont(QFont("Segoe UI", 10))
+        self.chk_sfm_enabled.setToolTip(tr("sfm_tip_enabled"))
+        self.chk_sfm_enabled.toggled.connect(self._on_toggle_sfm)
+        form_sfm.addRow("", self.chk_sfm_enabled)
+
+        self.chk_sfm_sound = QCheckBox(tr("sfm_lbl_sound"))
+        self.chk_sfm_sound.setChecked(cfg.get("sfm_sound_enabled", True))
+        self.chk_sfm_sound.setToolTip(tr("sfm_tip_sound"))
+        form_sfm.addRow("", self.chk_sfm_sound)
+
+        self.spin_alert_question = QSpinBox()
+        self.spin_alert_question.setRange(0, 300)
+        self.spin_alert_question.setValue(cfg.get("sfm_alert_question_sec", 0))
+        self.spin_alert_question.setSpecialValueText(disabled_txt)
+        self.spin_alert_question.setSuffix(f" {unit_sec}")
+        self.spin_alert_question.setToolTip(tr("sfm_tip_alert_question"))
+        form_sfm.addRow(tr("sfm_lbl_alert_question"), self.spin_alert_question)
+
+        self.spin_auto_reveal = QSpinBox()
+        self.spin_auto_reveal.setRange(0, 300)
+        self.spin_auto_reveal.setValue(cfg.get("sfm_auto_reveal_sec", 0))
+        self.spin_auto_reveal.setSpecialValueText(disabled_txt)
+        self.spin_auto_reveal.setSuffix(f" {unit_sec}")
+        self.spin_auto_reveal.setToolTip(tr("sfm_tip_auto_reveal"))
+        form_sfm.addRow(tr("sfm_lbl_auto_reveal"), self.spin_auto_reveal)
+
+        self.spin_alert_answer = QSpinBox()
+        self.spin_alert_answer.setRange(0, 300)
+        self.spin_alert_answer.setValue(cfg.get("sfm_alert_answer_sec", 15))
+        self.spin_alert_answer.setSpecialValueText(disabled_txt)
+        self.spin_alert_answer.setSuffix(f" {unit_sec}")
+        self.spin_alert_answer.setToolTip(tr("sfm_tip_alert_answer"))
+        form_sfm.addRow(tr("sfm_lbl_alert_answer"), self.spin_alert_answer)
+
+        self.combo_auto_action = QComboBox()
+        self.combo_auto_action.addItem(tr("sfm_action_none"), "none")
+        self.combo_auto_action.addItem(tr("sfm_action_again"), "again")
+        self.combo_auto_action.addItem(tr("sfm_action_good"), "good")
+        self.combo_auto_action.addItem(tr("sfm_action_bury"), "bury")
+        cur_action = str(cfg.get("sfm_auto_action", "again")).lower()
+        for idx in range(self.combo_auto_action.count()):
+            if self.combo_auto_action.itemData(idx) == cur_action:
+                self.combo_auto_action.setCurrentIndex(idx)
+                break
+        self.combo_auto_action.setToolTip(tr("sfm_tip_auto_action"))
+        form_sfm.addRow(tr("sfm_lbl_auto_action"), self.combo_auto_action)
+
+        self.spin_auto_action_delay = QSpinBox()
+        self.spin_auto_action_delay.setRange(0, 300)
+        self.spin_auto_action_delay.setValue(cfg.get("sfm_auto_action_sec", 0))
+        self.spin_auto_action_delay.setSpecialValueText(disabled_txt)
+        self.spin_auto_action_delay.setSuffix(f" {unit_sec}")
+        self.spin_auto_action_delay.setToolTip(tr("sfm_tip_auto_action_delay"))
+        form_sfm.addRow(tr("sfm_lbl_auto_action_delay"), self.spin_auto_action_delay)
+
+        self.chk_auto_skip = QCheckBox(tr("sfm_lbl_auto_skip"))
+        self.chk_auto_skip.setChecked(cfg.get("sfm_auto_skip", False))
+        self.chk_auto_skip.setToolTip(tr("sfm_tip_auto_skip"))
+        form_sfm.addRow("", self.chk_auto_skip)
+
+        self.chk_show_more_time = QCheckBox(tr("sfm_lbl_show_button"))
+        self.chk_show_more_time.setChecked(cfg.get("sfm_show_more_time_button", True))
+        self.chk_show_more_time.setToolTip(tr("sfm_tip_show_button"))
+        form_sfm.addRow("", self.chk_show_more_time)
+
+        self.edit_hotkey = QLineEdit()
+        self.edit_hotkey.setMaxLength(1)
+        self.edit_hotkey.setText(cfg.get("sfm_hotkey_more_time", "p"))
+        self.edit_hotkey.setToolTip(tr("sfm_tip_hotkey"))
+        form_sfm.addRow(tr("sfm_lbl_hotkey"), self.edit_hotkey)
+
+        self.chk_stop_on_typing = QCheckBox(tr("sfm_lbl_stop_typing"))
+        self.chk_stop_on_typing.setChecked(cfg.get("sfm_stop_on_typing", True))
+        self.chk_stop_on_typing.setToolTip(tr("sfm_tip_stop_typing"))
+        form_sfm.addRow("", self.chk_stop_on_typing)
+
+        self.chk_use_deck_conf = QCheckBox(tr("sfm_lbl_use_deck_conf"))
+        self.chk_use_deck_conf.setChecked(cfg.get("sfm_use_deck_conf_overrides", True))
+        self.chk_use_deck_conf.setToolTip(tr("sfm_tip_use_deck_conf"))
+        form_sfm.addRow("", self.chk_use_deck_conf)
+
+        body_layout.addWidget(card_sfm)
+
         scroll.setWidget(body)
         root.addWidget(scroll)
 
@@ -218,6 +313,7 @@ class FatigueSettingsDialog(QDialog):
         root.addWidget(footer)
 
         self._on_toggle_revlog(self.chk_use_revlog.isChecked())
+        self._on_toggle_sfm(self.chk_sfm_enabled.isChecked())
 
     def _update_error_suffix(self, val: float):
         pct = int(round(val * 100))
@@ -259,6 +355,19 @@ class FatigueSettingsDialog(QDialog):
 
     def _on_toggle_revlog(self, checked: bool):
         self.spin_revlog_days.setEnabled(checked)
+
+    def _on_toggle_sfm(self, checked: bool):
+        self.chk_sfm_sound.setEnabled(checked)
+        self.spin_alert_question.setEnabled(checked)
+        self.spin_auto_reveal.setEnabled(checked)
+        self.spin_alert_answer.setEnabled(checked)
+        self.combo_auto_action.setEnabled(checked)
+        self.spin_auto_action_delay.setEnabled(checked)
+        self.chk_auto_skip.setEnabled(checked)
+        self.chk_show_more_time.setEnabled(checked)
+        self.edit_hotkey.setEnabled(checked)
+        self.chk_stop_on_typing.setEnabled(checked)
+        self.chk_use_deck_conf.setEnabled(checked)
 
     def _apply_stylesheet(self):
         if self._dark:
@@ -310,7 +419,7 @@ class FatigueSettingsDialog(QDialog):
                 QLabel {
                     color: #cdd6f4;
                 }
-                QSpinBox, QDoubleSpinBox {
+                QSpinBox, QDoubleSpinBox, QComboBox, QLineEdit {
                     background-color: #181825;
                     border: 1px solid #45475a;
                     border-radius: 6px;
@@ -319,11 +428,11 @@ class FatigueSettingsDialog(QDialog):
                     font-weight: 600;
                     min-width: 110px;
                 }
-                QSpinBox:focus, QDoubleSpinBox:focus {
+                QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus, QLineEdit:focus {
                     border: 1px solid #89b4fa;
                     background-color: #1e1e2e;
                 }
-                QSpinBox:disabled, QDoubleSpinBox:disabled {
+                QSpinBox:disabled, QDoubleSpinBox:disabled, QComboBox:disabled, QLineEdit:disabled {
                     background-color: #181825;
                     color: #585b70;
                     border-color: #313244;
@@ -433,7 +542,7 @@ class FatigueSettingsDialog(QDialog):
                 QLabel {
                     color: #1e293b;
                 }
-                QSpinBox, QDoubleSpinBox {
+                QSpinBox, QDoubleSpinBox, QComboBox, QLineEdit {
                     background-color: #ffffff;
                     border: 1px solid #cbd5e1;
                     border-radius: 6px;
@@ -442,11 +551,11 @@ class FatigueSettingsDialog(QDialog):
                     font-weight: 600;
                     min-width: 110px;
                 }
-                QSpinBox:focus, QDoubleSpinBox:focus {
+                QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus, QLineEdit:focus {
                     border: 1px solid #2563eb;
                     background-color: #ffffff;
                 }
-                QSpinBox:disabled, QDoubleSpinBox:disabled {
+                QSpinBox:disabled, QDoubleSpinBox:disabled, QComboBox:disabled, QLineEdit:disabled {
                     background-color: #f1f5f9;
                     color: #94a3b8;
                     border-color: #e2e8f0;
@@ -520,6 +629,21 @@ class FatigueSettingsDialog(QDialog):
         cfg["pause_tolerance_minutes"] = self.spin_pause_tolerance.value()
         cfg["use_revlog_baseline"] = self.chk_use_revlog.isChecked()
         cfg["revlog_baseline_days"] = self.spin_revlog_days.value()
+
+        # Speed Focus Mode
+        cfg["sfm_enabled"] = self.chk_sfm_enabled.isChecked()
+        cfg["sfm_sound_enabled"] = self.chk_sfm_sound.isChecked()
+        cfg["sfm_alert_question_sec"] = self.spin_alert_question.value()
+        cfg["sfm_auto_reveal_sec"] = self.spin_auto_reveal.value()
+        cfg["sfm_alert_answer_sec"] = self.spin_alert_answer.value()
+        cfg["sfm_auto_action_sec"] = self.spin_auto_action_delay.value()
+        cfg["sfm_auto_action"] = str(self.combo_auto_action.currentData() or "again").lower()
+        cfg["sfm_auto_skip"] = self.chk_auto_skip.isChecked()
+        cfg["sfm_show_more_time_button"] = self.chk_show_more_time.isChecked()
+        cfg["sfm_hotkey_more_time"] = self.edit_hotkey.text().strip().lower() or "p"
+        cfg["sfm_stop_on_typing"] = self.chk_stop_on_typing.isChecked()
+        cfg["sfm_use_deck_conf_overrides"] = self.chk_use_deck_conf.isChecked()
+
         save_config(cfg)
         log("Settings: saved by user.")
         self.accept()
@@ -535,3 +659,22 @@ class FatigueSettingsDialog(QDialog):
         self.spin_pause_tolerance.setValue(DEFAULTS["pause_tolerance_minutes"])
         self.chk_use_revlog.setChecked(DEFAULTS["use_revlog_baseline"])
         self.spin_revlog_days.setValue(DEFAULTS["revlog_baseline_days"])
+
+        # Speed Focus Mode
+        self.chk_sfm_enabled.setChecked(DEFAULTS.get("sfm_enabled", True))
+        self.chk_sfm_sound.setChecked(DEFAULTS.get("sfm_sound_enabled", True))
+        self.spin_alert_question.setValue(DEFAULTS.get("sfm_alert_question_sec", 0))
+        self.spin_auto_reveal.setValue(DEFAULTS.get("sfm_auto_reveal_sec", 0))
+        self.spin_alert_answer.setValue(DEFAULTS.get("sfm_alert_answer_sec", 15))
+        self.spin_auto_action_delay.setValue(DEFAULTS.get("sfm_auto_action_sec", 0))
+        def_action = str(DEFAULTS.get("sfm_auto_action", "again")).lower()
+        for idx in range(self.combo_auto_action.count()):
+            if self.combo_auto_action.itemData(idx) == def_action:
+                self.combo_auto_action.setCurrentIndex(idx)
+                break
+        self.chk_auto_skip.setChecked(DEFAULTS.get("sfm_auto_skip", False))
+        self.chk_show_more_time.setChecked(DEFAULTS.get("sfm_show_more_time_button", True))
+        self.edit_hotkey.setText(DEFAULTS.get("sfm_hotkey_more_time", "p"))
+        self.chk_stop_on_typing.setChecked(DEFAULTS.get("sfm_stop_on_typing", True))
+        self.chk_use_deck_conf.setChecked(DEFAULTS.get("sfm_use_deck_conf_overrides", True))
+        self._on_toggle_sfm(self.chk_sfm_enabled.isChecked())

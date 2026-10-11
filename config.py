@@ -29,6 +29,20 @@ DEFAULTS = {
     "revlog_baseline_days": 14,
     # Tolérance de pause courte : si l'user revient dans ce délai, la session continue
     "pause_tolerance_minutes": 2,
+
+    # ── Speed Focus Mode ──
+    "sfm_enabled": True,
+    "sfm_sound_enabled": True,             # Option to enable or mute sound alert
+    "sfm_alert_question_sec": 0,           # Alert on question (0 = disabled)
+    "sfm_auto_reveal_sec": 0,              # Auto reveal answer (0 = disabled)
+    "sfm_alert_answer_sec": 15,            # Alert on reading answer (default 15s)
+    "sfm_auto_action_sec": 0,              # Auto action delay (0 = disabled)
+    "sfm_auto_action": "again",            # "again", "good", "bury", or "none"
+    "sfm_auto_skip": False,                # Start action count on question side
+    "sfm_show_more_time_button": True,     # Display button in reviewer bottom bar
+    "sfm_hotkey_more_time": "p",           # Hotkey to pause timer
+    "sfm_stop_on_typing": True,            # Suspend timer when typing answer
+    "sfm_use_deck_conf_overrides": True,   # Allow deck options to override if present
 }
 
 

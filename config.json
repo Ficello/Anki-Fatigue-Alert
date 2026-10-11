@@ -8,6 +8,18 @@
   "cooldown_cards": 20,
   "min_cards_before_alert": 19,
   "use_revlog_baseline": true,
-  "revlog_baseline_days": 30,
-  "pause_tolerance_minutes": 2
+  "revlog_baseline_days": 14,
+  "pause_tolerance_minutes": 2,
+  "sfm_enabled": true,
+  "sfm_sound_enabled": false,
+  "sfm_alert_question_sec": 15,
+  "sfm_auto_reveal_sec": 25,
+  "sfm_alert_answer_sec": 22,
+  "sfm_auto_action_sec": 0,
+  "sfm_auto_action": "none",
+  "sfm_auto_skip": false,
+  "sfm_show_more_time_button": false,
+  "sfm_hotkey_more_time": "p",
+  "sfm_stop_on_typing": true,
+  "sfm_use_deck_conf_overrides": true
 }
