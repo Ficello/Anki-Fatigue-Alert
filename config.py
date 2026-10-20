@@ -46,8 +46,14 @@ DEFAULTS = {
 }
 
 
+_CACHED_CONFIG = None
+
+
 def get_config() -> dict:
     """Load config from disk, merging with defaults."""
+    global _CACHED_CONFIG
+    if _CACHED_CONFIG is not None:
+        return _CACHED_CONFIG
     config = DEFAULTS.copy()
     if os.path.exists(_CONFIG_PATH):
         try:
@@ -56,11 +62,14 @@ def get_config() -> dict:
             config.update(saved)
         except Exception as e:
             log_error(f"Config: failed to load config.json: {e}")
-    return config
+    _CACHED_CONFIG = config
+    return _CACHED_CONFIG
 
 
 def save_config(config: dict):
     """Save config to disk."""
+    global _CACHED_CONFIG
+    _CACHED_CONFIG = dict(config)
     try:
         with open(_CONFIG_PATH, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
