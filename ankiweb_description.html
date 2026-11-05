@@ -1,0 +1,81 @@
+<h1>Alerte Fatigue pour Anki (Fatigue Alert)</h1>
+
+<p style="font-size: 15px; color: #334155; line-height: 1.6;">
+  <b>Optimisez l'efficacite de vos revisions et prevenez l'epuisement cognitif.</b><br>
+  Fatigue Alert analyse en temps reel votre rythme de reponse et votre taux d'erreur par rapport a votre moyenne de reference. Lorsqu'une baisse notable de concentration est detectee, une notification discrete vous suggere le moment ideal pour faire une pause.
+</p>
+
+<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>Fonctionnement Discret et Non Intrusif</h2>
+
+<table style="width: 100%; border-collapse: separate; border-spacing: 10px; margin: 15px 0;">
+  <tr>
+    <td style="width: 33%; vertical-align: top; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+      <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px;">ANALYSE CONTINUE</div>
+      <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px;">Fenetre Glissante</div>
+      <div style="font-size: 12px; color: #475569; line-height: 1.4;">L'algorithme compare les 5 dernieres cartes avec votre vitesse de reference des 30 derniers jours (historique revlog).</div>
+    </td>
+    <td style="width: 33%; vertical-align: top; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+      <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px;">AUCUN BLOCAGE</div>
+      <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px;">Raccourcis Preserves</div>
+      <div style="font-size: 12px; color: #475569; line-height: 1.4;">L'infobulle apparait dans le coin superieur droit sans bloquer la barre d'espace ni les touches 1, 2, 3, 4.</div>
+    </td>
+    <td style="width: 33%; vertical-align: top; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+      <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px;">AUTO-APPRENTISSAGE</div>
+      <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px;">Calibrage Personnel</div>
+      <div style="font-size: 12px; color: #475569; line-height: 1.4;">Chaque reponse ajuste la sensibilite future pour eliminer les fausses alertes selon vos paquets et habitudes.</div>
+    </td>
+  </tr>
+</table>
+
+<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>Comprendre les 3 Choix de l'Alerte</h2>
+<p style="font-size: 13px; color: #475569;">Lorsque l'infobulle s'affiche a l'ecran, trois reponses simples s'offrent a vous :</p>
+<ul>
+  <li><b>Oui - Faire une pause</b> : Valide la presence d'une fatigue cognitive et suspend temporairement votre session de revision pour vous encourager a recuperer.</li>
+  <li><b>Fatigue, mais je continue</b> : Enregistre l'etat de fatigue dans vos metriques tout en vous laissant poursuivre vos cartes sans interruption supplementaire.</li>
+  <li><b>L'algorithme se trompe</b> : Indique un faux positif. Le systeme abaisse instantanement sa sensibilite pour ne plus vous deranger inutilement lors de cette session.</li>
+</ul>
+
+<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>Parametres de Detection Recommandes</h2>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0;">
+  <tr style="background: #f1f5f9; text-align: left;">
+    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Parametre</th>
+    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Valeur par defaut</th>
+    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Description fonctionnelle</th>
+  </tr>
+  <tr>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;"><code>min_cards_before_alert</code></td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">19 cartes</td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Nombre minimum de cartes revues avant d'autoriser le premier declenchement.</td>
+  </tr>
+  <tr>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;"><code>time_ratio_threshold</code></td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">1.8</td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Declenchement si votre temps moyen par carte ralentit de 80% par rapport a la normale.</td>
+  </tr>
+  <tr>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;"><code>error_rate_threshold</code></td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">0.6</td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Declenchement si plus de 60% des cartes recentes sont marquees en echec.</td>
+  </tr>
+  <tr>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;"><code>cooldown_minutes</code></td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">15 minutes</td>
+    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Delai de repos minimal garanti entre deux alertes consecutives.</td>
+  </tr>
+</table>
+
+<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+<h2>Installation et Compatibilite</h2>
+<ul>
+  <li>Code d'installation AnkiWeb : <b>1071808091</b></li>
+  <li>Compatible avec Anki 23.10+, 24.x, 25.x+ (Qt6 et Qt5).</li>
+  <li>Adaptation automatique au mode Sombre (Dark Mode) et au mode Clair natifs d'Anki.</li>
+  <li>Traduit nativement en 17 langues avec detection automatique des preferences systeme.</li>
+</ul>

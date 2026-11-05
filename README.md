@@ -1,104 +1,64 @@
-# 🧠 Fatigue Alert for Anki (Alerte Fatigue)
+# Alerte Fatigue pour Anki (Fatigue Alert)
 
-[![Anki](https://img.shields.io/badge/Anki-23.10%2B%20%2F%2024%2B-blue.svg)](https://apps.ankiweb.net/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Multi-language](https://img.shields.io/badge/i18n-17%2B%20Languages-success.svg)](#-internationalization-i18n)
+Optimisez l'efficacite de vos revisions et prevenez l'epuisement cognitif.
 
-**Fatigue Alert** is an intelligent, non-intrusive Anki add-on designed to detect cognitive fatigue and declining review efficiency in real time. It monitors your response speed and error rates against your personal baseline, gently advising you when it is time to take a break.
+Fatigue Alert analyse en temps reel votre rythme de reponse et votre taux d'erreur par rapport a votre moyenne de reference. Lorsqu'une baisse notable de concentration est detectee, une notification discrete vous suggere le moment ideal pour faire une pause.
 
----
-
-## 📸 Overview & Screenshots
-
-<div align="center">
-  <img src="docs/images/alert_dark_light.png" alt="Fatigue Alert Popup" width="700">
-</div>
+![Notification d'Alerte Fatigue](docs/images/alert_dark_light.png)
 
 ---
 
-## ✨ Features
+## Fonctionnement Discret et Non Intrusif
 
-- **⚡ Real-Time Fatigue Detection**:
-  - Compares your current pace (sliding window) against your historical baseline (`revlog` or early-session reference).
-  - Triggers an alert if you experience a sharp slowdown (e.g. 1.8× baseline) or a sudden spike in failed reviews (e.g. 60%+ errors).
-- **🎯 Non-Intrusive & Floating Alert**:
-  - Displays a clean floating alert in the top-right corner without blocking keyboard shortcuts or interrupting your study flow.
-- **🧬 Self-Calibrating & Adaptive**:
-  - **"Yes — Take a Break"**: Confirms fatigue and pauses the session.
-  - **"Fatigued, but Continuing"**: Confirms fatigue while letting you keep reviewing.
-  - **"Algorithm is Wrong"**: Dynamically lowers sensitivity to prevent false positives.
-  - **"Report: Stopped Due to Fatigue"**: Explicitly log a fatigue stop from the *Tools* menu to adapt thresholds per deck.
-- **🛡️ Anti-Spam & Cooldown**:
-  - Minimum delays (e.g. 15 minutes / 20 cards) between alerts.
-  - Pause tolerance (e.g. 2 min) keeps your session alive if you briefly step away.
-- **🎨 Native Light & Dark Themes**:
-  - Automatically matches Anki's Night Mode and UI styling.
-- **🌍 Full Multilingual Support (i18n)**:
-  - 17+ languages fully translated and automatically detected from Anki preferences.
+| Pilier | Principe | Detail fonctionnel |
+| :--- | :--- | :--- |
+| **Analyse Continue** | **Fenetre Glissante** | L'algorithme compare en permanence les 5 dernieres cartes avec votre vitesse de reference sur 30 jours (historique `revlog`). |
+| **Aucun Blocage** | **Raccourcis Preserves** | L'infobulle apparait dans le coin superieur droit sans bloquer la barre d'espace ni les touches de notation (1, 2, 3, 4). |
+| **Auto-Apprentissage** | **Calibrage Personnel** | Chaque reponse affine le modele pour eliminer les fausses alertes selon vos paquets et votre rythme d'etude. |
 
 ---
 
-## 🚀 Installation
+## Comprendre les 3 Choix de l'Alerte
 
-### Via AnkiWeb (Recommended)
-1. In Anki, go to **Tools** > **Add-ons** > **Get Add-ons...**
-2. Enter the Add-on Code: `1071808091`
-3. Restart Anki.
+Lorsque l'infobulle apparait a l'ecran, trois choix operationnels s'offrent a vous :
 
-### Manual Installation (.ankiaddon / Source)
-1. Download the `.ankiaddon` file from the [Releases](https://github.com/Ficello/Anki-Fatigue-Alert/releases) tab or clone this repository.
-2. In Anki, open **Tools** > **Add-ons** > **Install from file...** and select `Anki_EDN_Fatigue_Alert.ankiaddon`.
-3. Alternatively, copy the `Anki_EDN_Fatigue_Alert` folder directly into your Anki `addons21/` directory.
+1. **Oui - Faire une pause** : Valide la presence d'une fatigue cognitive et suspend temporairement votre session pour vous encourager a recuperer.
+2. **Fatigue, mais je continue** : Enregistre l'etat de fatigue dans vos metriques tout en vous laissant poursuivre vos cartes sans interruption supplementaire.
+3. **L'algorithme se trompe** : Signale un faux positif. Le systeme abaisse instantanement sa sensibilite pour ne plus perturber votre session courante.
 
 ---
 
-## ⚙️ Configuration & Usage
+## Parametres de Detection Recommandes
 
-Access options directly through:
-- **Tools** > **Fatigue Alert** > **Settings...**
-- **Tools** > **Fatigue Alert** > **Enable Fatigue Detection** (quick toggle checkable directly in menu)
-- **Tools** > **Fatigue Alert** > **Report: Stopped Due to Fatigue**
+Ces parametres sont ajustables dans le menu `Outils > Alerte Fatigue > Parametres...` ou directement dans `config.json` :
 
-### Config Parameters (`config.json`)
-
-| Parameter | Default | Description |
-|---|---|---|
-| `enabled` | `true` | Enable or disable fatigue detection. |
-| `window_size` | `5` | Number of recent cards analyzed in the sliding window. |
-| `baseline_cards` | `10` | Initial session cards used as baseline if no history is present. |
-| `min_cards_before_alert` | `19` | Minimum number of cards before allowing the first alert. |
-| `time_ratio_threshold` | `1.8` | Slowdown ratio triggering an alert (1.8× = 80% slower than baseline). |
-| `error_rate_threshold` | `0.6` | Error rate ratio triggering an alert (0.6 = 60% failures in window). |
-| `cooldown_minutes` | `15` | Minimum cooldown in minutes between two consecutive alerts. |
-| `cooldown_cards` | `20` | Minimum cards reviewed between two consecutive alerts. |
-| `pause_tolerance_minutes` | `2` | Time window within which resuming reviews continues the same session. |
-| `use_revlog_baseline` | `true` | Analyze Anki's past `revlog` review history for baseline pace. |
-| `revlog_baseline_days` | `30` | Number of past days analyzed for the revlog baseline. |
+| Parametre | Valeur par defaut | Description fonctionnelle |
+| :--- | :--- | :--- |
+| `min_cards_before_alert` | `19` cartes | Nombre minimum de cartes revues avant d'autoriser le premier declenchement. |
+| `time_ratio_threshold` | `1.8` | Declenchement si votre temps moyen par carte ralentit de 80% par rapport a la normale. |
+| `error_rate_threshold` | `0.6` | Declenchement si plus de 60% des cartes recentes sont marquees en echec. |
+| `cooldown_minutes` | `15` min | Periode de silence minimal entre deux notifications consecutives. |
+| `use_revlog_baseline` | `true` | Calcule le rythme nominal sur votre historique de revision des 30 derniers jours. |
 
 ---
 
-## 🛠️ Project Structure
+## Installation
 
-```text
-Anki-Fatigue-Alert/
-├── __init__.py           # Hook registrations & menu setup
-├── alert_dialog.py       # Custom floating fatigue alert UI
-├── analyzer.py           # Real-time pacing & error rate analysis engine
-├── config.py             # Configuration getter, setter and defaults
-├── config.json           # Default user configurations
-├── deck_utils.py         # Deck resolution utilities
-├── feedback_store.py     # SQLite persistence for feedback & adaptive thresholds
-├── i18n.py               # Internationalization dictionary & locale detection
-├── logger.py             # Add-on logging utility
-├── manifest.json         # Anki add-on manifest metadata
-├── settings_dialog.py    # Clean Qt settings dialog
-├── docs/                 # Documentation assets & screenshots
-├── LICENSE               # MIT License
-└── README.md             # Repository documentation
-```
+### Via AnkiWeb (Recommande)
+1. Dans Anki, ouvrez le menu `Outils > Modules complementaires > Acquerir des modules complementaires...`
+2. Saisissez le code : **1071808091**
+3. Redemarrez Anki.
+
+### Depuis le fichier .ankiaddon
+1. Telechargez le fichier `.ankiaddon` depuis les releases locales ou GitHub.
+2. Dans Anki, ouvrez `Outils > Modules complementaires > Installer depuis un fichier...`
+3. Selectionnez le package et redemarrez Anki.
 
 ---
 
-## 📄 License
+## Assistance et Documentation
 
-This project is licensed under the [MIT License](LICENSE).
+- Code d'installation AnkiWeb : **1071808091**
+- Compatibilite : Anki 23.10+, Anki 24.x, Anki 25.x+ (Qt5 & Qt6, modes clair et sombre)
+- Code source : [Depot GitHub Ficello/Anki-Fatigue-Alert](https://github.com/Ficello/Anki-Fatigue-Alert)
+- Licence : MIT License
