@@ -92,6 +92,7 @@ def get_sfm_config_for_card(card: Union["Card", None]) -> dict:
     res = {
         "enabled": bool(global_cfg.get("sfm_enabled", True)),
         "sound_enabled": bool(global_cfg.get("sfm_sound_enabled", True)),
+        "visual_enabled": bool(global_cfg.get("sfm_visual_enabled", True)),
         "alert_question_sec": int(global_cfg.get("sfm_alert_question_sec", 0)),
         "auto_reveal_sec": int(global_cfg.get("sfm_auto_reveal_sec", 0)),
         "alert_answer_sec": int(global_cfg.get("sfm_alert_answer_sec", 15)),
@@ -366,13 +367,14 @@ def webview_message_handler(reviewer: Reviewer, message: str) -> bool:
         parts = sub.split(":")
         sec = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else params["alert_question_sec"]
         play_alert_sound()
-        msg = tr("sfm_alert_question_msg", sec=sec)
-        js_msg = json.dumps(msg)
-        trigger_screen_overlay("question")
-        eval_reviewer_js(
-            reviewer,
-            f"if (typeof faSfmTriggerAlertVisual === 'function') {{ faSfmTriggerAlertVisual({js_msg}, 'question', true); }}",
-        )
+        if params.get("visual_enabled", True):
+            msg = tr("sfm_alert_question_msg", sec=sec)
+            js_msg = json.dumps(msg)
+            trigger_screen_overlay("question")
+            eval_reviewer_js(
+                reviewer,
+                f"if (typeof faSfmTriggerAlertVisual === 'function') {{ faSfmTriggerAlertVisual({js_msg}, 'question', true); }}",
+            )
         return True
 
     elif sub.startswith("alert_answer"):
@@ -382,13 +384,14 @@ def webview_message_handler(reviewer: Reviewer, message: str) -> bool:
         parts = sub.split(":")
         sec = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else params["alert_answer_sec"]
         play_alert_sound()
-        msg = tr("sfm_alert_answer_msg", sec=sec)
-        js_msg = json.dumps(msg)
-        trigger_screen_overlay("answer")
-        eval_reviewer_js(
-            reviewer,
-            f"if (typeof faSfmTriggerAlertVisual === 'function') {{ faSfmTriggerAlertVisual({js_msg}, 'answer', true); }}",
-        )
+        if params.get("visual_enabled", True):
+            msg = tr("sfm_alert_answer_msg", sec=sec)
+            js_msg = json.dumps(msg)
+            trigger_screen_overlay("answer")
+            eval_reviewer_js(
+                reviewer,
+                f"if (typeof faSfmTriggerAlertVisual === 'function') {{ faSfmTriggerAlertVisual({js_msg}, 'answer', true); }}",
+            )
         return True
 
     elif sub.startswith("action"):
@@ -517,6 +520,19 @@ def on_state_shortcuts_will_change(
         return
     hotkey = cfg.get("sfm_hotkey_more_time", "p")
     if hotkey:
+        broker = getattr(mw, "shortcut_broker", None)
+        if broker and hasattr(broker, "claim"):
+            try:
+                hotkey = broker.claim(
+                    action_id="fatigue_alert.more_time",
+                    label="Pause / Plus de temps (Speed Focus)",
+                    scope="reviewer",
+                    preferred=[hotkey, "Alt+P", "Ctrl+Shift+P", "t"],
+                    addon_id="anki_fatigue_alert",
+                    addon_name="Alerte Fatigue"
+                )
+            except Exception:
+                pass
         shortcuts.append((hotkey, lambda: on_more_time(mw.reviewer)))
 
 

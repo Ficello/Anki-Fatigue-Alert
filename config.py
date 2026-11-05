@@ -33,6 +33,7 @@ DEFAULTS = {
     # ── Speed Focus Mode ──
     "sfm_enabled": True,
     "sfm_sound_enabled": True,             # Option to enable or mute sound alert
+    "sfm_visual_enabled": True,            # Option to enable or disable visual animations (red/orange vignette)
     "sfm_alert_question_sec": 0,           # Alert on question (0 = disabled)
     "sfm_auto_reveal_sec": 0,              # Auto reveal answer (0 = disabled)
     "sfm_alert_answer_sec": 15,            # Alert on reading answer (default 15s)

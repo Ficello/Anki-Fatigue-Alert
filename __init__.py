@@ -35,6 +35,7 @@ _session_end_time  = None    # Time when reviewer_will_end was called
 _fa_menu    = None   # QMenu
 _act_toggle = None   # QAction — checked state updated on toggle
 _act_sfm_toggle = None  # QAction — Speed Focus toggle
+_act_sfm_visual_toggle = None  # QAction — Animations (vignette rouge / orange) toggle
 
 
 # ------------------------------------------------------------------
@@ -128,13 +129,10 @@ def _init_session(card):
     """Resolve the real deck ID and start a new analyzer session."""
     try:
         analyzer = get_analyzer()
-        deck_id  = card.did
+        deck_id = getattr(card, "odid", 0) or getattr(card, "did", 0)
         if mw and mw.col:
-            deck = mw.col.decks.get(deck_id)
-            if deck and deck.get("dyn", 0) == 1:
-                odid = deck.get("odid", 0)
-                if odid:
-                    deck_id = odid
+            from .deck_utils import _resolve_root
+            deck_id = _resolve_root(mw.col, deck_id)
         analyzer.start_session(deck_id)
     except Exception as e:
         log_error(f"__init__ _init_session error: {e}")
@@ -309,12 +307,35 @@ def _toggle_sfm_enabled():
     log(f"Speed Focus {'enabled' if new_state else 'disabled'} by user.")
 
 
+def _toggle_sfm_visual_enabled():
+    """Toggle Speed Focus visual animations (red/orange overlay) immediately."""
+    global _act_sfm_visual_toggle
+    from .screen_overlay import stop_screen_overlay
+    cfg       = get_config()
+    new_state = not cfg.get("sfm_visual_enabled", True)
+    set_value("sfm_visual_enabled", new_state)
+
+    if _act_sfm_visual_toggle is not None:
+        _act_sfm_visual_toggle.setChecked(new_state)
+
+    if not new_state:
+        stop_screen_overlay()
+        if mw and hasattr(mw, "reviewer") and mw.reviewer:
+            try:
+                from .speed_focus import eval_reviewer_js
+                eval_reviewer_js(mw.reviewer, "if (typeof faSfmClearAlertVisual === 'function') { faSfmClearAlertVisual(); }")
+            except Exception:
+                pass
+
+    log(f"Speed Focus animations {'enabled' if new_state else 'disabled'} by user.")
+
+
 # ------------------------------------------------------------------
 # Menu setup (in mw.form.menuTools)
 # ------------------------------------------------------------------
 def _setup_tools_menu():
     """Inject Fatigue Alert entries into Anki's built-in Tools menu."""
-    global _fa_menu, _act_toggle, _act_sfm_toggle
+    global _fa_menu, _act_toggle, _act_sfm_toggle, _act_sfm_visual_toggle
     try:
         from aqt.qt import QMenu, QAction
 
@@ -340,6 +361,12 @@ def _setup_tools_menu():
         _act_sfm_toggle.setChecked(cfg.get("sfm_enabled", True))
         _act_sfm_toggle.triggered.connect(_toggle_sfm_enabled)
         _fa_menu.addAction(_act_sfm_toggle)
+
+        _act_sfm_visual_toggle = QAction(tr("sfm_lbl_visual"), mw)
+        _act_sfm_visual_toggle.setCheckable(True)
+        _act_sfm_visual_toggle.setChecked(cfg.get("sfm_visual_enabled", True))
+        _act_sfm_visual_toggle.triggered.connect(_toggle_sfm_visual_enabled)
+        _fa_menu.addAction(_act_sfm_visual_toggle)
 
         _fa_menu.addSeparator()
 

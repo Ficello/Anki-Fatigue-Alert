@@ -38,7 +38,22 @@ def _resolve_root(col, did: int) -> int:
 
         # If it's a filtered deck, use the original deck id
         if deck.get("dyn", 0) == 1:
-            odid = deck.get("odid", 0)
+            odid = 0
+            try:
+                odid = col.db.scalar("SELECT odid FROM cards WHERE did = ? AND odid != 0 LIMIT 1", did) or 0
+            except Exception:
+                pass
+            if not odid and "terms" in deck and deck["terms"]:
+                try:
+                    import re
+                    term = deck["terms"][0][0]
+                    m = re.search(r'deck:\s*"([^"]+)"', term) or re.search(r'deck:([^\s]+)', term)
+                    if m:
+                        target_did = col.decks.id_for_name(m.group(1))
+                        if target_did:
+                            odid = target_did
+                except Exception:
+                    pass
             if odid:
                 did = odid
                 deck = col.decks.get(did)
@@ -85,8 +100,23 @@ def _collect_family(col, did: int, family: set):
                 family.add(d_id)
             # Filtered deck pointing to a deck already in family
             if d.get("dyn", 0) == 1:
-                odid = d.get("odid", 0)
-                if odid in family and d_id not in family:
+                f_odid = 0
+                try:
+                    f_odid = col.db.scalar("SELECT odid FROM cards WHERE did = ? AND odid != 0 LIMIT 1", d_id) or 0
+                except Exception:
+                    pass
+                if not f_odid and "terms" in d and d["terms"]:
+                    try:
+                        import re
+                        term = d["terms"][0][0]
+                        m = re.search(r'deck:\s*"([^"]+)"', term) or re.search(r'deck:([^\s]+)', term)
+                        if m:
+                            target_did = col.decks.id_for_name(m.group(1))
+                            if target_did:
+                                f_odid = target_did
+                    except Exception:
+                        pass
+                if f_odid in family and d_id not in family:
                     family.add(d_id)
     except Exception as e:
         log_error(f"DeckUtils: _collect_family error: {e}")

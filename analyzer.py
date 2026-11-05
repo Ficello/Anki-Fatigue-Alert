@@ -183,12 +183,12 @@ class FatigueAnalyzer:
                 SELECT r.time
                 FROM revlog r
                 JOIN cards c ON r.cid = c.id
-                WHERE c.did IN ({placeholders})
+                WHERE (c.did IN ({placeholders}) OR c.odid IN ({placeholders}))
                   AND r.id >= ?
                   AND r.time > 1000
                   AND r.time < 120000
                 """,
-                *list(family), since_ms
+                *(list(family) * 2), since_ms
             )
             return self._trimmed_mean(rows)
         except Exception as e:

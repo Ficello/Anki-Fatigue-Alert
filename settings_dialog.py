@@ -208,6 +208,11 @@ class FatigueSettingsDialog(QDialog):
         self.chk_sfm_sound.setToolTip(tr("sfm_tip_sound"))
         form_sfm.addRow("", self.chk_sfm_sound)
 
+        self.chk_sfm_visual = QCheckBox(tr("sfm_lbl_visual"))
+        self.chk_sfm_visual.setChecked(cfg.get("sfm_visual_enabled", True))
+        self.chk_sfm_visual.setToolTip(tr("sfm_tip_visual"))
+        form_sfm.addRow("", self.chk_sfm_visual)
+
         self.spin_alert_question = QSpinBox()
         self.spin_alert_question.setRange(0, 300)
         self.spin_alert_question.setValue(cfg.get("sfm_alert_question_sec", 0))
@@ -358,6 +363,7 @@ class FatigueSettingsDialog(QDialog):
 
     def _on_toggle_sfm(self, checked: bool):
         self.chk_sfm_sound.setEnabled(checked)
+        self.chk_sfm_visual.setEnabled(checked)
         self.spin_alert_question.setEnabled(checked)
         self.spin_auto_reveal.setEnabled(checked)
         self.spin_alert_answer.setEnabled(checked)
@@ -418,6 +424,14 @@ class FatigueSettingsDialog(QDialog):
                 }
                 QLabel {
                     color: #cdd6f4;
+                }
+                QToolTip, CustomLabel, QLabel[customTooltip="true"] {
+                    background-color: #0f172a;
+                    color: #f8fafc;
+                    border: 1px solid #334155;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    font-size: 12px;
                 }
                 QSpinBox, QDoubleSpinBox, QComboBox, QLineEdit {
                     background-color: #181825;
@@ -542,6 +556,14 @@ class FatigueSettingsDialog(QDialog):
                 QLabel {
                     color: #1e293b;
                 }
+                QToolTip, CustomLabel, QLabel[customTooltip="true"] {
+                    background-color: #feffc4;
+                    color: #000000;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                }
                 QSpinBox, QDoubleSpinBox, QComboBox, QLineEdit {
                     background-color: #ffffff;
                     border: 1px solid #cbd5e1;
@@ -633,6 +655,7 @@ class FatigueSettingsDialog(QDialog):
         # Speed Focus Mode
         cfg["sfm_enabled"] = self.chk_sfm_enabled.isChecked()
         cfg["sfm_sound_enabled"] = self.chk_sfm_sound.isChecked()
+        cfg["sfm_visual_enabled"] = self.chk_sfm_visual.isChecked()
         cfg["sfm_alert_question_sec"] = self.spin_alert_question.value()
         cfg["sfm_auto_reveal_sec"] = self.spin_auto_reveal.value()
         cfg["sfm_alert_answer_sec"] = self.spin_alert_answer.value()
@@ -663,6 +686,7 @@ class FatigueSettingsDialog(QDialog):
         # Speed Focus Mode
         self.chk_sfm_enabled.setChecked(DEFAULTS.get("sfm_enabled", True))
         self.chk_sfm_sound.setChecked(DEFAULTS.get("sfm_sound_enabled", True))
+        self.chk_sfm_visual.setChecked(DEFAULTS.get("sfm_visual_enabled", True))
         self.spin_alert_question.setValue(DEFAULTS.get("sfm_alert_question_sec", 0))
         self.spin_auto_reveal.setValue(DEFAULTS.get("sfm_auto_reveal_sec", 0))
         self.spin_alert_answer.setValue(DEFAULTS.get("sfm_alert_answer_sec", 15))

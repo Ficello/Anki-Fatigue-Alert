@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Ficello/Anki-Customize-Keyboard-Shortcuts/main/schemas/shortcuts-v1.json",
+  "schema_version": 1,
+  "addon_name": "Alerte Fatigue et Speed Focus",
+  "shortcuts": [
+    {
+      "id": "fatigue_alert.more_time",
+      "label": "Pause / Plus de temps (Speed Focus)",
+      "scope": "reviewer",
+      "default": "p",
+      "fallbacks": ["Alt+P", "Ctrl+Shift+P", "t"],
+      "config_key": "sfm_hotkey_more_time"
+    }
+  ]
+}

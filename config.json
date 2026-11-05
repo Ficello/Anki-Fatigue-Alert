@@ -21,5 +21,6 @@
   "sfm_show_more_time_button": false,
   "sfm_hotkey_more_time": "p",
   "sfm_stop_on_typing": true,
-  "sfm_use_deck_conf_overrides": true
+  "sfm_use_deck_conf_overrides": true,
+  "sfm_visual_enabled": false
 }
