@@ -13,14 +13,15 @@ Baseline strategy (3-level progressive autonomy):
 Recalculated fresh at each session start.
 
 Detection (sliding window):
-  - time fatigue  : window_mean >= baseline * (time_ratio_threshold + deck_adj)
-  - error fatigue : error_rate  >= (error_rate_threshold + deck_adj)
+  - time fatigue  : window_median >= baseline * (time_ratio_threshold + deck_adj)
+  - error fatigue : error_rate    >= (error_rate_threshold + deck_adj)
   Either condition alone suffices to trigger an alert.
 
 Feedback loop:
   - Per-deck threshold adjustments loaded from FeedbackStore at session start.
 """
 import time
+import statistics
 from collections import deque
 from .logger import log, log_error
 from .config import get_config
@@ -300,10 +301,11 @@ class FatigueAnalyzer:
                 if elapsed_min < cooldown_min and cards_since < cooldown_cards:
                     return False
 
-        # Window pace stats
-        w_times  = [e[0] for e in self.window]
-        w_mean   = sum(w_times) / len(w_times)
-        ratio    = w_mean / self.baseline_mean
+        # Window pace stats (median is robust to AFK / card freezes)
+        w_times   = [e[0] for e in self.window]
+        w_median  = statistics.median(w_times)
+        w_mean    = sum(w_times) / len(w_times)
+        ratio     = w_median / self.baseline_mean
 
         # Effective thresholds (base + learned adjustment)
         eff_time_thr  = cfg.get("time_ratio_threshold", 1.8)  + self._time_ratio_adj
@@ -331,7 +333,7 @@ class FatigueAnalyzer:
 
         log(
             f"FatigueAnalyzer: check | "
-            f"w_mean={w_mean:.1f}s ratio={ratio:.2f} (thr={eff_time_thr:.2f}) | "
+            f"w_median={w_median:.1f}s (w_mean={w_mean:.1f}s) ratio={ratio:.2f} (thr={eff_time_thr:.2f}) | "
             f"mat_err={mat_err_rate:.0%} (thr={eff_error_thr:.0%}, mature_count={len(self.mature_window)})"
         )
 
@@ -399,12 +401,14 @@ class FatigueAnalyzer:
         all_t     = [e[0] for e in self.session_events]
         mat_eases = [e[1] for e in self.mature_window] if self.mature_window else []
         mat_err_rate = round(mat_eases.count(1) / len(mat_eases) * 100) if mat_eases else 0
+        w_median  = round(statistics.median(w_times), 1) if w_times else 0
 
         return {
             "total_cards":        self.total_cards,
             "baseline_mean_time": round(self.baseline_mean or 0, 1),
             "baseline_source":    self.baseline_source,
-            "window_mean_time":   round(sum(w_times) / len(w_times), 1) if w_times else 0,
+            "window_median_time": w_median,
+            "window_mean_time":   w_median,  # Kept as alias to window_median_time for backward compatibility
             "window_error_rate":  mat_err_rate,
             "session_mean_time":  round(sum(all_t) / len(all_t), 1) if all_t else 0,
             "time_ratio_adj":     round(self._time_ratio_adj, 3),

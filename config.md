@@ -7,7 +7,7 @@ Ce module surveille en temps réel votre rythme d'apprentissage et votre taux d'
 - `enabled` (booléen) : active ou désactive globalement le module de surveillance de la fatigue.
 - `window_size` (entier) : nombre de cartes récentes constituant la fenêtre glissante d'analyse immédiate.
 - `baseline_cards` (entier) : nombre de cartes en début de session servant d'étalon de vitesse si l'historique revlog n'est pas disponible.
-- `time_ratio_threshold` (nombre) : ratio de ralentissement (temps moyen de la fenêtre glissante divisé par le temps de référence) déclenchant une alerte.
+- `time_ratio_threshold` (nombre) : ratio de ralentissement (temps médian de la fenêtre glissante divisé par le temps de référence) déclenchant une alerte.
 - `error_rate_threshold` (nombre) : taux d'échec minimal sur la fenêtre glissante justifiant une alerte (ex: `0.6` correspond à 60% d'erreurs).
 - `cooldown_minutes` (entier) : temps de pause minimal requis (en minutes) après une alerte avant qu'une nouvelle alerte ne puisse survenir.
 - `cooldown_cards` (entier) : nombre de cartes consécutives devant être étudiées après une alerte avant d'autoriser une nouvelle notification.

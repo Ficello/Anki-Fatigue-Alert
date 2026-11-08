@@ -12,15 +12,15 @@
   "pause_tolerance_minutes": 2,
   "sfm_enabled": true,
   "sfm_sound_enabled": false,
+  "sfm_visual_enabled": true,
   "sfm_alert_question_sec": 15,
-  "sfm_auto_reveal_sec": 25,
-  "sfm_alert_answer_sec": 22,
+  "sfm_auto_reveal_sec": 21,
+  "sfm_alert_answer_sec": 15,
   "sfm_auto_action_sec": 0,
   "sfm_auto_action": "none",
   "sfm_auto_skip": false,
   "sfm_show_more_time_button": false,
   "sfm_hotkey_more_time": "p",
   "sfm_stop_on_typing": true,
-  "sfm_use_deck_conf_overrides": true,
-  "sfm_visual_enabled": false
+  "sfm_use_deck_conf_overrides": true
 }

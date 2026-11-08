@@ -35,7 +35,7 @@ Ces parametres sont ajustables dans le menu `Outils > Alerte Fatigue > Parametre
 | Parametre | Valeur par defaut | Description fonctionnelle |
 | :--- | :--- | :--- |
 | `min_cards_before_alert` | `19` cartes | Nombre minimum de cartes revues avant d'autoriser le premier declenchement. |
-| `time_ratio_threshold` | `1.8` | Declenchement si votre temps moyen par carte ralentit de 80% par rapport a la normale. |
+| `time_ratio_threshold` | `1.8` | Declenchement si votre temps median par carte ralentit de 80% par rapport a la normale. |
 | `error_rate_threshold` | `0.6` | Declenchement si plus de 60% des cartes recentes sont marquees en echec. |
 | `cooldown_minutes` | `15` min | Periode de silence minimal entre deux notifications consecutives. |
 | `use_revlog_baseline` | `true` | Calcule le rythme nominal sur votre historique de revision des 30 derniers jours. |

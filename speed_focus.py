@@ -192,7 +192,6 @@ def set_question_timeouts(reviewer: Reviewer):
             reviewer.web.update()
             from aqt.qt import QTimer
             QTimer.singleShot(50, lambda: getattr(reviewer, "web", None) and reviewer.web.update())
-            QTimer.singleShot(150, lambda: getattr(reviewer, "web", None) and reviewer.web.update())
     except Exception:
         pass
 
@@ -260,8 +259,6 @@ def set_answer_timeouts(reviewer: Reviewer):
             reviewer.web.update()
             from aqt.qt import QTimer
             QTimer.singleShot(50, lambda: getattr(reviewer, "web", None) and reviewer.web.update())
-            QTimer.singleShot(150, lambda: getattr(reviewer, "web", None) and reviewer.web.update())
-            QTimer.singleShot(300, lambda: getattr(reviewer, "web", None) and reviewer.web.update())
     except Exception:
         pass
 
