@@ -273,7 +273,14 @@ def _open_settings():
     try:
         from .settings_dialog import FatigueSettingsDialog
         dialog = FatigueSettingsDialog(mw)
-        dialog.exec()
+        if dialog.exec():
+            cfg = get_config()
+            if _act_toggle is not None:
+                _act_toggle.setChecked(bool(cfg.get("enabled", True)))
+            if _act_sfm_toggle is not None:
+                _act_sfm_toggle.setChecked(bool(cfg.get("sfm_enabled", True)))
+            if _act_sfm_visual_toggle is not None:
+                _act_sfm_visual_toggle.setChecked(bool(cfg.get("sfm_visual_enabled", True)))
     except Exception as e:
         log_error(f"__init__ _open_settings error: {e}")
 

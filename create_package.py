@@ -10,6 +10,7 @@ EXCLUDES = [
     "fatigue_alert.log",
     "fatigue_feedback.db",
     "tests",
+    "test_settings_dialog.py",
     "debug_",
     "manual_",
     "INSTRUCTIONS_DEBUG",
